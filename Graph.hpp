@@ -39,6 +39,9 @@ public:
 
     bool edge_exists(const T& from, const T& to) const;
 
+    const auto node_count() const;
+    const auto edge_count() const;
+
     const auto& neighbors(const T& from) const;
 };
 
@@ -55,7 +58,7 @@ void Graph<T, E>::print(std::ostream& out) const {
 
 template <typename T, typename E>
 void Graph<T, E>::add_node(T val) {
-    nodes[val] = std::move(Node<T, E>{ val });
+    nodes[val] = Node<T, E>{ val };
 }
 
 template <typename T, typename E>
@@ -85,32 +88,25 @@ void Graph<T, E>::add_edge(const T& from, const T& to, E weight) {
         return;
     }
 
-    it->second.neighbors[to] = std::move(weight);
+    it->second.neighbors[to] = weight;
 }
-/*
+
 template <typename T, typename E>
-void Graph<T, E>::del_edge(const Node<T>& from, const Node<T>& to) {
-    auto outer_it = std::find_if(std::begin(nodes), std::end(nodes),
-                                 [&from] (const auto& outer_node) {
-                                     return outer_node.node == from;
-                                 });
+void Graph<T, E>::del_edge(const T& from, const T& to) {
+    auto outer_it = nodes.find(from);
 
     if (outer_it == std::end(nodes)) {
         return;
     }
 
-    auto inner_it = std::find_if(std::begin(outer_it->neighbors), std::end(outer_it->neighbors),
-                                 [&to] (const auto& node_pair) {
-                                     return node_pair.second == to;
-                                 });
+    auto it = outer_it->second.neighbors.find(to);
 
-    if (inner_it == std::end(outer_it->neighbors)) {
-        return;
+    if (it == std::end(outer_it->second.neighbors)) {
+	return;
     }
 
-    outer_it->neighbors.erase(inner_it);
+    outer_it->second.neighbors.erase(it);
 }
-*/
 
 template <typename T, typename E>
 bool Graph<T, E>::edge_exists(const T& from, const T& to) const {
@@ -132,8 +128,21 @@ bool Graph<T, E>::edge_exists(const T& from, const T& to) const {
 }
 
 template <typename T, typename E>
+const auto Graph<T, E>::node_count() const {
+    return nodes.size();
+}
+
+template <typename T, typename E>
+const auto Graph<T, E>::edge_count() const {
+    return std::accumulate(std::begin(nodes), std::end(nodes), 0,
+			   [] (const auto total, const auto& node) {
+			       return total + node.second.neighbors.size();
+			   });
+}
+
+template <typename T, typename E>
 const auto& Graph<T, E>::neighbors(const T& val) const {
-    return nodes[val]->neighbors;
+    return nodes.find[val]->second.neighbors;
 }
 
 #endif

@@ -8,7 +8,7 @@ int main() {
 
     std::vector<int> nodes;
 
-    for (int i = 0; i < 10000; i++) {
+    for (int i = 0; i < 50; i++) {
         nodes.push_back(i);
         graph.add_node(nodes[i]);
     }
@@ -21,7 +21,7 @@ int main() {
         return dist(eng);
     };
 
-    for (int i = 0; i < 2000000; i++) {
+    for (int i = 0; i < 10; i++) {
         int a = gen();
         int b = gen();
 
@@ -32,5 +32,6 @@ int main() {
         graph.add_edge(nodes[a], nodes[b], gen());
     }
     
-    //graph.print(std::cout);
+    std::cout << "nodes = " << graph.node_count() << std::endl
+	      << "edges = " << graph.edge_count() << std::endl;
 }
