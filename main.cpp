@@ -6,13 +6,7 @@
 int main() {
     Graph<int, int> graph;
 
-    std::vector<int> nodes;
-
-    for (int i = 0; i < 50; i++) {
-        nodes.push_back(i);
-        graph.add_node(nodes[i]);
-    }
-
+    /*
     std::random_device dev;
     std::default_random_engine eng(dev());
     std::uniform_int_distribution<int> dist(0, nodes.size());
@@ -20,18 +14,40 @@ int main() {
     const auto gen = [&dist, &eng] () {
         return dist(eng);
     };
+    */
 
-    for (int i = 0; i < 10; i++) {
-        int a = gen();
-        int b = gen();
+    graph.add_node(1);
+    graph.add_node(2);
+    graph.add_node(3);
+    graph.add_node(4);
+    graph.add_node(5);
 
-        while (a == b) {
-            b = gen();
-        }
-
-        graph.add_edge(nodes[a], nodes[b], gen());
-    }
+    graph.add_edge(1, 2, 1);
+    graph.add_edge(2, 1, 1);
     
-    std::cout << "nodes = " << graph.node_count() << std::endl
-	      << "edges = " << graph.edge_count() << std::endl;
+    graph.add_edge(2, 3, 2);
+    graph.add_edge(3, 2, 2);
+    
+    graph.add_edge(3, 4, 2);
+    graph.add_edge(4, 3, 2);
+
+    graph.add_edge(4, 5, 3);
+    graph.add_edge(5, 4, 3);
+
+    graph.add_edge(1, 5, 2);
+    graph.add_edge(5, 1, 2);
+
+    graph.add_edge(2, 5, 1);
+    graph.add_edge(5, 2, 1);
+
+    graph.add_edge(2, 4, 1);
+    graph.add_edge(4, 2, 1);
+
+    const auto tree = graph.minimum_spanning_tree();
+
+    std::cout << "graph:" << std::endl;
+    graph.print(std::cout);
+
+    std::cout << "msp: " << std::endl;
+    tree.print(std::cout);
 }
