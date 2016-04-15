@@ -1,0 +1,101 @@
+Ethan Lape
+Brett Tomcko
+
+Shortest path algorithms:
+
+function shortest_path(from, to)
+	 weights[from] := 0
+	 paths[from] := from
+	 s.add(from)
+
+	 while s.size() != V.size() do // O(|V)
+	       (u, v, e) = dijkstra_min_edge(s, weights) // O(|V| * |V| * |E|)
+	       weights[v] := weights[u] + e
+	       paths[v] := u
+	       s.add(v)
+
+	 final_path := {}
+	 node := to
+
+	 while node != from do  // O(|V|)
+	       final_path.insert(0, node)
+	       node := paths[node];
+
+	 final_path.insert(0, node)
+
+	 return final_path
+
+complexity: O(|V| * (|V| * |V| * |E|) + |V|)
+
+
+
+
+function dijkstra_min_edge(s, weights)
+	 u := null
+	 v := null
+	 e := null
+
+	 foreach s_node in s // O(|V|)
+	 	 foreach n in s_node.neighbors // O(|E|)
+		 	 if n not in s and weights(s) + weight(s, n) < e // O(|V|)
+			    u := s_node
+			    v := n
+			    e := weight(s, n)
+
+	 return (u, v, e)
+
+complexity: O(|V| * |V| * |E|)
+
+
+
+
+
+Minimum spanning tree algorithms:
+
+function minimum_spanning_tree()
+	 // Graph = (V, E)
+	 x := {u} where u in V
+	 y := V - x // O(|V|)
+	 tree := V // O(|V|)
+
+	 while x.size() != V.size() do // O(|V|)
+	       (u, v, e) = minimum_connection(x, y) // O(|V| * |V|)
+	       x.add(v)
+	       y.del(v)
+	       tree.add_edge(u, v, e)
+
+	 return tree;
+
+complexity: O(|V| * (|V| * |V|) + 2|V|)
+
+
+
+
+function minimum_connection(x, y)
+	 u := null
+	 v := null
+	 e := null
+
+	 foreach outer in x // O(|V|)
+	 	 foreach inner in y // O(|V|)
+		 	 if edge_exists(outer, inner) then
+			    if weight(outer, inner) < e
+			       u = outer
+			       v = inner
+			       e = weight(outer, inner)
+
+	  return (u, v, e)
+
+complexity: O(|V| * |V|)
+
+
+
+
+
+Our Graph class:
+
+we implemented our Graph class using adjacency lists.  for the nodes in the graph,
+we store an unordered_map<T, Node<T, E>>  where T is the type of the value of
+nodes in the graph and E is the type of the weights between edges.  each Node<T, E>
+object stores its T value and its own unordered_map<T, E> representing all of the
+neighbors of that node with the neighbors node value and the weight of the edge.

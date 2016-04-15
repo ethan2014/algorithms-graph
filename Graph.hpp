@@ -301,10 +301,18 @@ auto Graph<T, E>::minimum_spanning_tree() const {
 
 	std::tie(u, v, e) = minimum_connection(x, y);
 
+	std::cout << "adding " << u << " -> " << v << ", e = " << e << std::endl;
+
 	auto node = nodes.find(v);
 
 	x.push_back(node->second);
 	y.erase(std::find(std::begin(y), std::end(y), node->second));
+
+	for (const auto& i : y) {
+	    std::cout << i.value << ", ";
+	}
+
+	std::cout << std::endl;
 
 	tree.add_edge(u, v, e);
     }
@@ -315,36 +323,10 @@ auto Graph<T, E>::minimum_spanning_tree() const {
 template <typename T, typename E>
 auto Graph<T, E>::minimum_connection(const std::vector<Node<T, E>>& x,
 				     const std::vector<Node<T, E>>& y) const {
-    auto xit = x.begin();
-    auto node2 = Node<T, E>{};
+    const T* min_node1 = nullptr;
+    const T* min_node2 = nullptr;
+
     auto min_edge = E{};
-    auto found = false;
-
-    while (true) {
-	for (const auto& n : xit->neighbors) {
-	    for (const auto& y_node : y) {
-		if (n.first == y_node.value) {
-		    node2 = y_node;
-		    min_edge = n.second;
-		    found = true;
-		    break;
-		}
-	    }
-
-	    if (found) {
-		break;
-	    }
-	}
-
-	if (found) {
-	    break;
-	}
-	
-	std::advance(xit, 1);
-    }
-    
-    auto min_node1 = xit->value;
-    auto min_node2 = node2.value;
 
     for (const auto& outer_node : x) {
 	for (const auto& inner_node : y) {
@@ -356,15 +338,15 @@ auto Graph<T, E>::minimum_connection(const std::vector<Node<T, E>>& x,
 	    
 	    const auto edge = get_edge(outer_node.value, inner_node.value);
 
-	    if (edge < min_edge) {
-		min_node1 = outer_node.value;
-		min_node2 = inner_node.value;
+	    if (min_node1 == nullptr || edge < min_edge) {
+		min_node1 = &outer_node.value;
+		min_node2 = &inner_node.value;
 		min_edge = edge;
 	    }
 	}
     }
 
-    return std::make_tuple(min_node1, min_node2, min_edge);
+    return std::make_tuple(*min_node1, *min_node2, min_edge);
 }
 
 
