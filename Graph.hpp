@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <utility>
+#include <fstream>
 #include <vector>
 #include <stack>
 #include <tuple>
@@ -35,12 +36,13 @@ class Graph {
 private:
     std::unordered_map<T, Node<T, E>> nodes;
 
-    auto dfs(const Node<T, E>& start, const T& end, std::vector<T>& path) const;
-
-    auto dijkstra_min_edge(const std::vector<T>& s, const std::unordered_map<T, E>& weights) const;
+    auto dijkstra_min_edge(const std::vector<Node<T, E>>& s,
+			   const std::unordered_map<T, E>& weights) const;
 
 public:
     void print(std::ostream& out) const;
+
+    void load(const std::string& filename);
     
     void add_node(T val);
     void del_node(const T& val);
@@ -64,27 +66,32 @@ public:
 };
 
 template <typename T, typename E>
-auto Graph<T, E>::dijkstra_min_edge(const std::vector<T>& s,
+auto Graph<T, E>::dijkstra_min_edge(const std::vector<Node<T, E>>& s,
 				    const std::unordered_map<T, E>& weights) const {
+    const T* min_node1 = nullptr;
+    const T* min_node2 = nullptr;
+    const E* min_weight = nullptr;
     
-}
+    for (const auto& s_node : s) {
+	for (const auto& neighbor : s_node.neighbors) {
+	    const auto found = std::any_of(std::begin(s), std::end(s),
+					   [&neighbor] (const auto& n) {
+					       return neighbor.first == n.value;
+					   });
 
-template <typename T, typename E>
-auto Graph<T, E>::dfs(const Node<T, E>& start, const T& end, std::vector<T>& path) const {
-    if (start.value == end) {
-	return true;
-    }
-
-    for (const auto& n : start.neighbors) {
-	const auto node = nodes[n.value];
-
-	if (dfs(node, end, path)) {
-	    path.push_back(n.value);
-	    return true;
+	    if (!found) {
+		const auto weight = weights.at(s_node.value) + neighbor.second;
+		
+		if (min_node1 == nullptr || weight < *min_weight) {
+		    min_node1 = &s_node.value;
+		    min_node2 = &neighbor.first;
+		    min_weight = &neighbor.second;
+		} 
+	    }
 	}
     }
 
-    return false;
+    return std::make_tuple(*min_node1, *min_node2, *min_weight);
 }
 
 template <typename T, typename E>
@@ -95,6 +102,35 @@ void Graph<T, E>::print(std::ostream& out) const {
         for (const auto& n : node.second.neighbors) {
             std::cout << "    (E = " << n.second << ", V = " << n.first << ")" << std::endl;
         }
+    }
+}
+
+template <typename T, typename E>
+void Graph<T, E>::load(const std::string& filename) {
+    nodes.clear();
+    
+    std::ifstream file{ filename };
+
+    std::string in;
+
+    auto read_nodes = true;
+
+    while (file >> in) {
+	if (in == "nodes:") {
+	    read_nodes = true;
+	} else if (in == "edges:") {
+	    read_nodes = false;
+	} else if (read_nodes) {
+	    add_node(std::stoi(in));
+	} else {
+	    auto u = std::stoi(in);
+	    file >> in;
+	    auto v = std::stoi(in);
+	    file >> in;
+	    auto e = std::stoi(in);
+
+	    add_edge(u, v, e);
+	}
     }
 }
 
@@ -200,20 +236,45 @@ const auto& Graph<T, E>::neighbors(const T& val) const {
 
 template <typename T, typename E>
 auto Graph<T, E>::shortest_path(const T& from, const T& to) const {
-    const auto from_node = nodes[from];
-    const auto to_node = nodes[to];
+    if (from == to) {
+	return std::vector<T>{};
+    }
+    
+    const auto from_node = nodes.at(from);
+    const auto to_node = nodes.at(to);
 
     auto weights = std::unordered_map<T, E>{};
     auto paths = std::unordered_map<T, T>{};
-    auto s = std::vector<T>{};
+    auto s = std::vector<Node<T, E>>{};
 
     weights[from] = E{};
     paths[from] = from;
-    s.push_back(from);
+    s.push_back(from_node);
 
     while (s.size() != nodes.size()) {
-	
+	auto u = T{};
+	auto v = T{};
+	auto e = E{};
+
+	std::tie(u, v, e) = dijkstra_min_edge(s, weights);
+
+	weights[v] = weights[u] + e;
+	paths[v] = u;
+	s.push_back(nodes.at(v));
     }
+
+    auto ret = std::vector<T>{};
+
+    auto node = to;
+
+    while (node != from) {
+	ret.insert(std::begin(ret), node);
+	node = paths.at(node);
+    }
+
+    ret.insert(std::begin(ret), node);
+
+    return ret;
 }
 
 template <typename T, typename E>
